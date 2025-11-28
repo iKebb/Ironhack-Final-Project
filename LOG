@@ -16,3 +16,24 @@ He realizado 3 cambios en el dataset original (el dataset vino completamente lim
 )
 2. Añadí dos columnas nuevas: (max_cycle, RUL)
 3. Guardé el nuevo dataset en un csv.
+4. RFR y XGBR funcionan de p-ta madre sin tratar outliers; sacando los features problemáticos 
+  tengo casi un 100% de predicción SOLO en los datos de entrenamiento. Al validar, esta predicción 
+  baja problemáticamente hasta un 78%, lo cual es bastante bajo.
+
+Teoría del PDF:
+
+```markdown
+Los 21 sensores provienen de una simulación de un motor tipo turbojet comercial con  ~90,000 lbf de empuje, usando el simulador C-MAPSS de la NASA. Está diseñado para reflejar mediciones reales de motores y su evolución con el tiempo, captando el daño progresivo —modelado como una pérdida exponencial de **flujo** y **eficiencia** en el compresor de alta presión (HPC), que es el único modulo degradado en el dataset FD001.
+
+Los sensores se agrupan por funciones:
+
+- **Temperaturas totales (T)**: miden energía térmica. `T2`, `T24`, `T30` y `T50` están la temperatura de gases de escape `(EGT)`. De entre ellos, `T30` y `T50` (corresponden a los sensores 3 y 4) nos dan las señales más claras sensibles al daño de la degradación del `HPC` —el motor necesita más combustible para mantener el poder del empuje, lo que eleva las temperaturas aguas abajo (SEA LEVEL).
+
+- **Presiones (P)**: `P2`, `P15`, `P30`, `Ps30` son todos medidores de presión, pero destacamos entre estos `P30` y `Ps30`, siendo `P30` (correspondiente al sensor 7) la presión *TOTAL A LA SALIDA Del* `HPC` y `Ps30` (correspondiente al sensor 11), nuestro medidor de presión más importante. que corresponde a la presión *ESTÁTICA* en la misma ubicación.
+
+- **Relaciones adimensionales (enviroment)**: `epr` es nuestro radio de presión por motor. Este disminuye muy suavemente con el daño al igual que el `BPR` (Bypass Ratio). Aquí nos interesan `farB` (relación combustible-aire en el quemado) y `phi` (flujo de combustible / Ps30), quienes aumentan dado que al uso se requiere una inyección de más combustible para mantener el empuje ante la caída de `Ps30`, el medidor de presión del `HPC`. 
+
+- **Entalpía**: (entalpía del aire extraído para sistemas neumáticos) y los flujos de enfriamiento, como `W31` (HPT) y `W23` (LPT). Estos dos últimos aumentan con el daño, asumiblemente porque el sistema de control eleva el sangrado de aire frío para proteger las palas de las turbinas frente al aumento de temperatura.
+
+- **Señales de comando**: son velocidades demandadas por el piloto a través del `TRA`. No son respuestas del motor, son inputs de controlador; no son outputs de daño y no cambian con la degradación.
+```
